@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2><i class="bi bi-people"></i> Manager Dashboard</h2>
+        <p class="text-muted">Welcome, {{ user.get_full_name }}! Manage your team's performance.</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Team Overview -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-people-fill"></i> Team Members</h5>
+                <a href="{% url 'create_task' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus"></i> Create Task
+                </a>
+            </div>
+            <div class="card-body">
+                {% if subordinates %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for employee in subordinates %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ employee.get_full_name }}</strong><br>
+                                        <small class="text-muted">{{ employee.email }}</small>
+                                    </td>
+                                    <td>{{ employee.department.name|default:"--" }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ employee.get_role_display }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'rate_employee' employee.id %}" class="btn btn-outline-primary">
+                                                <i class="bi bi-star"></i> Rate
+                                            </a>
+                                            <a href="{% url 'create_appraisal' employee.id %}" class="btn btn-outline-success">
+                                                <i class="bi bi-clipboard-check"></i> Appraise
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No team members assigned to you.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'create_task' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create New Task
+                    </a>
+                    <a href="{% url 'task_list' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-list-task"></i> View All Tasks
+                    </a>
+                    <hr>
+                    <small class="text-muted">Department Overview</small>
+                    {% for dept in departments %}
+                    <div class="border p-2 rounded">
+                        <strong>{{ dept.name }}</strong><br>
+                        <small class="text-muted">{{ dept.description }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

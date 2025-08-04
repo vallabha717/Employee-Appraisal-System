@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2><i class="bi bi-person-workspace"></i> Employee Dashboard</h2>
+        <p class="text-muted">Welcome, {{ user.get_full_name }}!</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Tasks Section -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-list-task"></i> Recent Tasks</h5>
+                <a href="{% url 'task_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if assigned_tasks %}
+                    {% for task in assigned_tasks %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <h6>{{ task.title }}</h6>
+                        <small class="text-muted">Due: {{ task.due_date|date:"M d, Y H:i" }}</small>
+                        <span class="badge bg-{% if task.status == 'completed' %}success{% elif task.is_overdue %}danger{% else %}warning{% endif %}">
+                            {{ task.get_status_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No tasks assigned yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Appraisals Section -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clipboard-check"></i> Recent Appraisals</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_appraisals %}
+                    {% for appraisal in recent_appraisals %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <h6>{{ appraisal.period.title }}</h6>
+                        <p class="mb-1">Score: <strong>{{ appraisal.overall_percentage|floatformat:1 }}%</strong></p>
+                        <small class="text-muted">Manager: {{ appraisal.manager.get_full_name }}</small>
+                        <span class="badge bg-{% if appraisal.status == 'approved' %}success{% elif appraisal.status == 'negotiation' %}warning{% else %}info{% endif %}">
+                            {{ appraisal.get_status_display }}
+                        </span>
+                        <div class="mt-1">
+                            <a href="{% url 'view_appraisal' appraisal.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                            {% if appraisal.status == 'approved' and not appraisal.negotiationticket %}
+                                <a href="{% url 'negotiate_appraisal' appraisal.id %}" class="btn btn-sm btn-outline-warning">Negotiate</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No appraisals available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if pending_appraisals %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-award"></i> Appraisals Awaiting Your Action</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for appraisal in pending_appraisals %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>Period:</strong> {{ appraisal.period.title }}<br>
+                            <strong>Score:</strong> {{ appraisal.overall_percentage|floatformat:1 }}%
+                        </span>
+                        <span>
+                            <a href="{% url 'negotiate_appraisal' appraisal.id %}" class="btn btn-warning btn-sm">Negotiate</a>
+                            <a href="{% url 'accept_appraisal' appraisal.id %}" class="btn btn-success btn-sm ms-2">Accept</a>
+                        </span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Stats -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ assigned_tasks|length }}</h4>
+                        <small class="text-muted">Recent Tasks</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ completed_tasks|length }}</h4>
+                        <small class="text-muted">Completed Tasks</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">{{ recent_appraisals|length }}</h4>
+                        <small class="text-muted">Recent Appraisals</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">
+                            {% if recent_appraisals %}
+                                {{ recent_appraisals.0.overall_percentage|floatformat:0 }}%
+                            {% else %}
+                                --
+                            {% endif %}
+                        </h4>
+                        <small class="text-muted">Latest Score</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

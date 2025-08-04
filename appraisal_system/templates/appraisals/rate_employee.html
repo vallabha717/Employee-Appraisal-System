@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Rate Employee{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-star"></i> Rate Employee Performance</h5>
+            </div>
+            <div class="card-body">
+                <!-- Employee Info -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="bg-light p-3 rounded">
+                            <h6>Employee: {{ employee.get_full_name }}</h6>
+                            <p class="mb-0">
+                                <small class="text-muted">
+                                    Department: {{ employee.department.name|default:"--" }} | 
+                                    Role: {{ employee.get_role_display }}
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.task.id_for_label }}" class="form-label">Related Task (Optional)</label>
+                                {{ form.task }}
+                                <div class="form-text">Select a completed task this rating is based on.</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.overall_rating.id_for_label }}" class="form-label">
+                                    Overall Rating (0-100) <span class="text-danger">*</span>
+                                </label>
+                                {{ form.overall_rating }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.quality_rating.id_for_label }}" class="form-label">
+                                    Quality Rating <span class="text-danger">*</span>
+                                </label>
+                                {{ form.quality_rating }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.timeliness_rating.id_for_label }}" class="form-label">
+                                    Timeliness Rating <span class="text-danger">*</span>
+                                </label>
+                                {{ form.timeliness_rating }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.remarks.id_for_label }}" class="form-label">
+                            Detailed Remarks <span class="text-danger">*</span>
+                        </label>
+                        {{ form.remarks }}
+                        <div class="form-text">
+                            Provide specific feedback about the employee's performance, achievements, and areas for improvement.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.keywords.id_for_label }}" class="form-label">Performance Keywords</label>
+                        {{ form.keywords }}
+                        <div class="form-text">
+                            Add comma-separated keywords for performance analysis (e.g., leadership, teamwork, innovation).
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Important:</strong> This rating will contribute to the employee's overall appraisal score. 
+                        Please ensure your evaluation is fair, accurate, and based on objective performance metrics.
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Submit Rating
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+}
+</style>
+{% endblock %}

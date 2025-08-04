@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Appraisal Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-clipboard-data"></i> Performance Appraisal</h5>
+                {% if user.role == 'hr_admin' %}
+                    <a href="{% url 'generate_appraisal_pdf' appraisal.id %}" class="btn btn-success">
+                        <i class="bi bi-file-pdf"></i> Generate PDF
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <!-- Employee Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6>Employee Information</h6>
+                        <table class="table table-borderless table-sm">
+                            <tr>
+                                <td><strong>Name:</strong></td>
+                                <td>{{ appraisal.employee.get_full_name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Employee ID:</strong></td>
+                                <td>{{ appraisal.employee.employee_id|default:"--" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Department:</strong></td>
+                                <td>{{ appraisal.employee.department.name|default:"--" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Manager:</strong></td>
+                                <td>{{ appraisal.manager.get_full_name }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Appraisal Period</h6>
+                        <table class="table table-borderless table-sm">
+                            <tr>
+                                <td><strong>Period:</strong></td>
+                                <td>{{ appraisal.period.title }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Duration:</strong></td>
+                                <td>{{ appraisal.period.start_date }} to {{ appraisal.period.end_date }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if appraisal.status == 'approved' %}success{% elif appraisal.status == 'negotiation' %}warning{% else %}info{% endif %}">
+                                        {{ appraisal.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>HR Approved:</strong></td>
+                                <td>
+                                    {% if appraisal.hr_approved %}
+                                        <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    {% if user.role == 'hr_admin' and not appraisal.hr_approved %}
+                                        <div class="d-grid mb-3">
+                                            <a href="{% url 'approve_appraisal' appraisal.id %}" class="btn btn-success btn-lg">
+                                                <i class="bi bi-envelope-check"></i> Approve & Send Appraisal Letter
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Performance Scores -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h6>Performance Scores</h6>
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <div class="bg-primary text-white p-3 rounded">
+                                    <h4>{{ appraisal.overall_percentage|floatformat:1 }}%</h4>
+                                    <small>Overall Score</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="bg-success text-white p-3 rounded">
+                                    <h4>{{ appraisal.task_completion_score|floatformat:1 }}%</h4>
+                                    <small>Task Completion</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="bg-info text-white p-3 rounded">
+                                    <h4>{{ appraisal.quality_score|floatformat:1 }}%</h4>
+                                    <small>Quality Score</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Appraisal Letter -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h6>Appraisal Letter</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                {{ appraisal.appraisal_letter|safe }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% if appraisal.hr_approved and appraisal.status == 'approved' and user == appraisal.employee %}
+                <div class="row mb-4">
+                    <div class="col-md-12 text-center">
+                        <button class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#acceptModal">
+                            <i class="bi bi-check-circle"></i> Accept
+                        </button>
+                        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#negotiateModal">
+                            <i class="bi bi-exclamation-diamond"></i> Negotiate
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Accept Modal -->
+                <div class="modal fade" id="acceptModal" tabindex="-1" aria-labelledby="acceptModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="acceptModalLabel">Accept Appraisal</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        Are you sure you want to accept this appraisal?
+                      </div>
+                      <div class="modal-footer">
+                        <form method="post" action="{% url 'accept_appraisal' appraisal.id %}">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-success">Yes, Accept</button>
+                        </form>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Negotiate Modal -->
+                <div class="modal fade" id="negotiateModal" tabindex="-1" aria-labelledby="negotiateModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="negotiateModalLabel">Negotiate Appraisal</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <form method="post" action="{% url 'negotiate_appraisal' appraisal.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                          <div class="mb-3">
+                            <label for="employee_reason" class="form-label">Reason for Negotiation</label>
+                            <textarea name="employee_reason" id="employee_reason" class="form-control" rows="4" required></textarea>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-warning">Submit Negotiation</button>
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
+                {% if user.role == 'hr_admin' %}
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'edit_appraisal_scores' appraisal.id %}" class="btn btn-outline-secondary btn-lg">
+                                    <i class="bi bi-pencil-square"></i> Edit Scores
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'approve_appraisal' appraisal.id %}" class="btn btn-success btn-lg">
+                                    <i class="bi bi-envelope-check"></i> Approve & Send Appraisal Letter
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

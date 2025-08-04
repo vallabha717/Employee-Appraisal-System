@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Task Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-list-task"></i> Task Management</h2>
+            {% if user.role in 'manager,team_leader' %}
+                <a href="{% url 'create_task' %}" class="btn btn-primary">
+                    <i class="bi bi-plus"></i> Create Task
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if is_team_leader %}
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="mb-3">Tasks Assigned To You</h4>
+            {% if tasks_assigned_to_me %}
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Assigned By</th>
+                                <th>Priority</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks_assigned_to_me %}
+                            <tr>
+                                <td>{{ task.title }}</td>
+                                <td>{{ task.assigned_by.get_full_name }}</td>
+                                <td>{{ task.get_priority_display }}</td>
+                                <td>{{ task.due_date }}</td>
+                                <td>
+                                    <span class="badge bg-{% if task.status == 'completed' %}success{% elif task.is_overdue %}danger{% else %}warning{% endif %}">
+                                        {{ task.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if task.status != 'completed' %}
+                                        <a href="{% url 'submit_task' task.id %}" class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-check-circle"></i> Submit
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No tasks assigned to you.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="mb-3">Tasks You Assigned</h4>
+            {% if tasks_assigned_by_me %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Assigned To</th>
+                                <th>Priority</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks_assigned_by_me %}
+                            <tr>
+                                <td>{{ task.title }}</td>
+                                <td>{{ task.assigned_to.get_full_name }}</td>
+                                <td>{{ task.get_priority_display }}</td>
+                                <td>{{ task.due_date }}</td>
+                                <td>
+                                    <span class="badge bg-{% if task.status == 'completed' %}success{% elif task.is_overdue %}danger{% else %}warning{% endif %}">
+                                        {{ task.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if task.status == 'completed' %}
+                                        {% if task.id in rated_task_ids %}
+                                            <span class="badge bg-primary">Rated</span>
+                                            <a href="{% url 'rate_employee' task.assigned_to.id %}?task_id={{ task.id }}" class="btn btn-sm btn-outline-secondary ms-2">Update Rating</a>
+                                        {% else %}
+                                            <a href="{% url 'rate_employee' task.assigned_to.id %}?task_id={{ task.id }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-star"></i> Rate
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No tasks assigned by you.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="mb-3">Appraise Your Employees</h4>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employee in user.get_subordinates %}
+                        <tr>
+                            <td>{{ employee.get_full_name }}</td>
+                            <td>
+                                <a href="{% url 'create_appraisal' employee.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-clipboard-check"></i> Appraise
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                {% if tasks %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>{% if user.role == 'employee' %}Assigned By{% else %}Assigned To{% endif %}</th>
+                                    <th>Priority</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ task.title }}</strong><br>
+                                        <small class="text-muted">{{ task.description|truncatewords:10 }}</small>
+                                    </td>
+                                    <td>
+                                        {% if user.role == 'employee' %}
+                                            {{ task.assigned_by.get_full_name }}
+                                        {% else %}
+                                            {{ task.assigned_to.get_full_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if task.priority == 'urgent' %}danger{% elif task.priority == 'high' %}warning{% elif task.priority == 'medium' %}info{% else %}secondary{% endif %}">
+                                            {{ task.get_priority_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ task.due_date|date:"M d, Y H:i" }}<br>
+                                        {% if task.is_overdue %}
+                                            <small class="text-danger">Overdue</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if task.status == 'completed' %}success{% elif task.is_overdue %}danger{% else %}warning{% endif %}">
+                                            {{ task.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if user.role == 'employee' and task.status != 'completed' %}
+                                            <a href="{% url 'submit_task' task.id %}" class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-check-circle"></i> Submit
+                                            </a>
+                                        {% elif user.role in 'manager,team_leader' and task.status == 'completed' %}
+                                            <a href="{% url 'rate_employee' task.assigned_to.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-star"></i> Rate
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox display-1 text-muted"></i>
+                        <h4 class="mt-3">No tasks found</h4>
+                        <p class="text-muted">
+                            {% if user.role == 'employee' %}
+                                No tasks have been assigned to you yet.
+                            {% else %}
+                                You haven't created any tasks yet.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

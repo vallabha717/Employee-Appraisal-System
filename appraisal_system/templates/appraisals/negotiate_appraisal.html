@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Negotiate Appraisal{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-chat-dots"></i> Request Appraisal Negotiation
+                    {% if is_team_leader_negotiating %}
+                        <span class="badge badge-info ml-2">Team Leader</span>
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Appraisal Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="bg-light p-3 rounded">
+                            <h6>Current Appraisal Summary</h6>
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <strong>{{ appraisal.overall_percentage|floatformat:1 }}%</strong><br>
+                                    <small class="text-muted">Overall Score</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>{{ appraisal.task_completion_score|floatformat:1 }}%</strong><br>
+                                    <small class="text-muted">Task Completion</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>{{ appraisal.quality_score|floatformat:1 }}%</strong><br>
+                                    <small class="text-muted">Quality</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>{{ appraisal.timeliness_score|floatformat:1 }}%</strong><br>
+                                    <small class="text-muted">Timeliness</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Negotiation Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.employee_reason.id_for_label }}" class="form-label">
+                            {% if is_team_leader_negotiating %}
+                                Reason for Negotiation (on behalf of {{ appraisal.employee.get_full_name }}) <span class="text-danger">*</span>
+                            {% else %}
+                                Reason for Negotiation <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+                        {{ form.employee_reason }}
+                        <div class="form-text">
+                            {% if is_team_leader_negotiating %}
+                                As a team leader, please provide detailed reasons why you believe this appraisal for {{ appraisal.employee.get_full_name }} should be reconsidered.
+                                Include specific examples of their achievements, contributions, or circumstances that
+                            {% else %}
+                                Please provide detailed reasons why you believe this appraisal should be reconsidered. 
+                                Include specific examples of your achievements, contributions, or circumstances that
+                            {% endif %} 
+                            may not have been fully reflected in the current evaluation.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Note:</strong> Your negotiation request will be reviewed by your manager and HR. 
+                        You will be notified of the decision within 5 business days.
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'view_appraisal' appraisal.id %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-send"></i> 
+                            {% if is_team_leader_negotiating %}
+                                Submit Negotiation Request (as Team Leader)
+                            {% else %}
+                                Submit Negotiation Request
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% if user.role == 'hr_admin' %}
+<div class="row mt-4">
+    <div class="col-md-8 mx-auto">
+        <div class="d-grid">
+            <a href="{% url 'approve_appraisal' appraisal.id %}" class="btn btn-success btn-lg">
+                <i class="bi bi-envelope-check"></i> Send Approval
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

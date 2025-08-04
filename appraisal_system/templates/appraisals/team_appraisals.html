@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Team Appraisals{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-users"></i> Team Member Appraisals</h2>
+                <a href="{% url 'notifications' %}" class="btn btn-secondary">
+                    <i class="fas fa-bell"></i> Notifications
+                </a>
+            </div>
+
+            {% if team_appraisals %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Appraisals for Your Team Members</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Period</th>
+                                        <th>Overall Score</th>
+                                        <th>Status</th>
+                                        <th>Created Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appraisal in team_appraisals %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ appraisal.employee.get_full_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ appraisal.employee.email }}</small>
+                                            </td>
+                                            <td>{{ appraisal.period.title }}</td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if appraisal.overall_percentage >= 80 %}badge-success
+                                                    {% elif appraisal.overall_percentage >= 60 %}badge-warning
+                                                    {% else %}badge-danger{% endif %}">
+                                                    {{ appraisal.overall_percentage|floatformat:1 }}%
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if appraisal.status == 'approved' %}badge-success
+                                                    {% elif appraisal.status == 'submitted' %}badge-info
+                                                    {% elif appraisal.status == 'negotiation' %}badge-warning
+                                                    {% elif appraisal.status == 'rejected' %}badge-danger
+                                                    {% else %}badge-secondary{% endif %}">
+                                                    {{ appraisal.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ appraisal.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'view_appraisal' appraisal.id %}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </a>
+                                                    {% if appraisal.status in 'submitted,approved' %}
+                                                        <a href="{% url 'negotiate_appraisal' appraisal.id %}" 
+                                                           class="btn btn-sm btn-outline-warning">
+                                                            <i class="fas fa-handshake"></i> Negotiate
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No appraisals found for your team members.
+                    {% if team_members %}
+                        <br><br>
+                        <strong>Your Team Members:</strong>
+                        <ul class="mt-2">
+                            {% for member in team_members %}
+                                <li>{{ member.get_full_name }} ({{ member.email }})</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <br>You don't have any team members assigned to you.
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if team_members %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Team Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>Quick Actions for Team Members:</h6>
+                        <div class="row">
+                            {% for member in team_members %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card border-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ member.get_full_name }}</h6>
+                                            <p class="card-text text-muted">{{ member.email }}</p>
+                                            <div class="btn-group-vertical w-100" role="group">
+                                                <a href="{% url 'rate_employee' member.id %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-star"></i> Rate Performance
+                                                </a>
+                                                <a href="{% url 'create_appraisal' member.id %}" 
+                                                   class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-clipboard-check"></i> Create Appraisal
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

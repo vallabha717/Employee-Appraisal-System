@@ -1,0 +1,3 @@
+So in the project Manager will assign task to team leader and team leader will segregated the task to the employee. At the time of appraisal the employee will get evaluated by team leader based on the task they have assigned for and team leader will get evaluated based on how the team leader assigned task and the task is completed by the employees on time or not.
+
+Now 

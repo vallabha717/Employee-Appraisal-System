@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}HR Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12 text-end">
+        <a href="{% url 'hr_create_user' %}" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Add Member
+        </a>
+        <a href="{% url 'create_appraisal_period' %}" class="btn btn-secondary ms-2">
+            <i class="bi bi-calendar-plus"></i> Create Appraisal Period
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2><i class="bi bi-shield-check"></i> HR Admin Dashboard</h2>
+        <p class="text-muted">Welcome, {{ user.get_full_name }}! Manage company-wide appraisals.</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-calendar-range"></i> Appraisal Periods</h5>
+            </div>
+            <div class="card-body">
+                {% if appraisal_periods %}
+                    <ul class="list-group">
+                        {% for period in appraisal_periods %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                <strong>{{ period.title }}</strong> ({{ period.start_date }} to {{ period.end_date }})
+                                {% if period.is_active %}<span class="badge bg-success ms-2">Active</span>{% endif %}
+                            </span>
+                            <a href="{% url 'edit_appraisal_period' period.id %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">No appraisal periods created yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Pending Appraisals -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history"></i> Pending Appraisals</h5>
+            </div>
+            <div class="card-body">
+                {% if pending_appraisals %}
+                    {% for appraisal in pending_appraisals %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <h6>{{ appraisal.employee.get_full_name }}</h6>
+                        <p class="mb-1">
+                            Score: <strong>{{ appraisal.overall_percentage|floatformat:1 }}%</strong><br>
+                            <small class="text-muted">Manager: {{ appraisal.manager.get_full_name }}</small>
+                        </p>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'view_appraisal' appraisal.id %}" class="btn btn-outline-primary">View</a>
+                            <a href="{% url 'generate_appraisal_pdf' appraisal.id %}" class="btn btn-outline-success">PDF</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No pending appraisals.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Negotiation Tickets -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-chat-dots"></i> Negotiation Tickets</h5>
+            </div>
+            <div class="card-body">
+                {% if negotiation_tickets %}
+                    {% for ticket in negotiation_tickets %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <h6>{{ ticket.appraisal.employee.get_full_name }}</h6>
+                        <p class="mb-1">
+                            <small class="text-muted">{{ ticket.employee_reason|truncatewords:15 }}</small>
+                        </p>
+                        <span class="badge bg-{% if ticket.status == 'open' %}warning{% else %}info{% endif %}">
+                            {{ ticket.get_status_display }}
+                        </span>
+                        <div class="mt-1">
+                            <a href="{% url 'view_appraisal' ticket.appraisal.id %}" class="btn btn-sm btn-outline-primary">
+                                Review
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No active negotiations.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-check2-circle"></i> Completed Appraisals</h5>
+            </div>
+            <div class="card-body">
+                {% if completed_appraisals %}
+                    <ul class="list-group">
+                        {% for appraisal in completed_appraisals %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                <strong>Period:</strong> {{ appraisal.period.title }}<br>
+                                <strong>Employee:</strong> {{ appraisal.employee.get_full_name }}<br>
+                                <strong>Score:</strong> {{ appraisal.overall_percentage|floatformat:1 }}%
+                            </span>
+                            <a href="{% url 'view_appraisal' appraisal.id %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0">No completed appraisals yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

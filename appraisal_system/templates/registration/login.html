@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-clipboard-data display-4 text-primary"></i>
+                    <h3 class="mt-3">Appraisal System</h3>
+                    <p class="text-muted">Please sign in to your account</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            {{ form.username }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            {{ form.password }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Sign In
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        <!-- Registration link removed -->
+                    </small>
+                </div>
+
+                <!-- Demo Credentials -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <small class="text-muted">
+                        <strong>Demo Credentials:</strong><br>
+                        Employee: emp001 / password123<br>
+                        Manager: manager1 / password123<br>
+                        HR Admin: hr_admin / password123
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control {
+    border: none;
+    border-radius: 0;
+    border-bottom: 2px solid #ddd;
+    background: transparent;
+    padding: 12px 0;
+}
+.form-control:focus {
+    border-bottom-color: #0d6efd;
+    box-shadow: none;
+    background: transparent;
+}
+.input-group-text {
+    border: none;
+    background: transparent;
+    border-bottom: 2px solid #ddd;
+    border-radius: 0;
+}
+</style>
+{% endblock %}
