@@ -7,6 +7,8 @@
 - **P Venkat Raidu PES1PG24CS030**
 - **Yashas L PES1PG24CS057**
 
+**Github Link** -- https://github.com/vallabha717/Employee-Appraisal-System
+
 ## Brief Introduction
 
 The Employee Appraisal System is a comprehensive Django-based web application designed to streamline and automate the employee performance evaluation process. This system provides a structured approach to task management, performance rating, and appraisal generation with role-based access control and workflow management.
